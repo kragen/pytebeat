@@ -1,7 +1,7 @@
 #!/usr/local/bin/python2.7
-# make font bigger
+# -*- coding: utf-8 -*-
 
-import sys, wave, Tkinter, os, time, subprocess, pygame
+import sys, wave, Tkinter, os, time, subprocess, pygame, shuntparse, Numeric
 
 # play_command = None
 # for candidate in ['/usr/bin/aplay', '/usr/bin/afplay']:
@@ -39,34 +39,31 @@ t = 0
 interval = 33
 last_time = start = time.time() + 1
 def send_frames(error, formula, out, outfd, screen):
-    global current_formula, t, last_time
-    print time.time() - last_time,
-    sys.stdout.flush()
+    global current_formula, t, last_time, start
+
+    needed = int(min(rate * (time.time() - start + 1.5*interval/1000.0) - t,
+                     3 * interval / 1000.0 * rate))
+        
+    while needed % 8 != 0:
+        needed += 1
+    print time.time() - last_time, needed
+
     try:
-        formulas = formula.get().split(',')
-        formulas[-1] = 'return ' + formulas[-1]
-        ns = {}
-        exec "def new_formula(t):\n" + ''.join(" %s\n" % f.strip() for f in formulas) in ns
-        ns['new_formula'](0) & 255
-        current_formula = ns['new_formula']
+        current_formula = shuntparse.parse(shuntparse.tokenize(formula.get()))
     except:
         _, exc, _ = sys.exc_info()
         error.configure(text=str(exc))
     else:
         error.configure(text='')
 
-    needed = int(rate * (time.time() - start + 1.5*interval/1000.0)) - t
-    while needed % 8 != 0:
-        needed += 1
-    print needed,
-    # (t & 15) * (-t & 15) ^ (not (t & 16))-1 + 128
+    output = ''
 
-    output = []
-    for i in range(needed):
-        output.append(chr(current_formula(t) & 255))
-        t += 1
+    try:
+        output = current_formula.eval({'t': Numeric.arange(t, t+needed)}).astype(Numeric.UInt8).tostring()
+        t += needed
+    except:
+        error.configure(text=str(sys.exc_info()[1]))
     
-    #canvas.delete('all')
     screen.fill(0)
     pygame.event.poll()
     if len(output) > 1:
@@ -74,14 +71,18 @@ def send_frames(error, formula, out, outfd, screen):
                           list(enumerate(map(ord, output))))
     pygame.display.flip()
 
-        # canvas.create_rectangle(xx, yy, xx+4, yy+4, fill='grey50')
-        # if ii > 50:
-        #     break
-
     #out.writeframesraw(''.join(output))
-    outfd.write(''.join(output))
+    outstart = time.time()
+    outfd.write(output)
     outfd.flush()
     last_time = time.time()
+
+    # hacky kludge to keep us from getting too far behind if for some
+    # reason the audio output isn’t draining fast enough
+    if last_time - outstart > interval * 0.1:
+        print "buffer overrun of %f" % (last_time - outstart)
+        start += (last_time - outstart) / 2
+
     error.after(interval, lambda: send_frames(error, formula, out, outfd, screen))
 
 def make_window():
