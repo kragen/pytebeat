@@ -3,6 +3,7 @@
 # next items:
 # - an SDL one-line text editor so I can dump Tkinter!
 # - vertical waveform display
+# - integer multiplication overflow
 # - integer object has no attribute astype
 # - improve parse errors
 
@@ -46,7 +47,8 @@ def run_mainloop(error, formula, outfd, screen):
     
     event = pygame.event.poll()
     if event.type in [pygame.QUIT, pygame.MOUSEBUTTONDOWN]:
-        raise Exception()
+        # For some reason, normal ways of exiting aren’t working.
+        os.kill(os.getpid(), 9)
     elif event.type == pygame.KEYDOWN:
         formula.handle_key(event)
     elif event.type == pygame.NOEVENT:
@@ -76,11 +78,15 @@ def run_mainloop(error, formula, outfd, screen):
 def make_window():
     outfd = open('/dev/dsp', 'w')
     pygame.init()
-    screen = pygame.display.set_mode((0, 0))
-    formula = sdltextfield.TextField((10, 266), foreground=(0,0,255))
+    default_font = '/home/kragen/.fonts/a/anami.ttf'
+    font = pygame.font.Font(default_font, 24) if os.path.exists(default_font) else None
+    
+    
+    screen = pygame.display.set_mode((0, 0), 0&pygame.FULLSCREEN)
+    formula = sdltextfield.TextField((10, 266), foreground=(0,0,255), font=font)
     formula.text = 'a = t * (t>>10 & 42), t | t >> 4'
     #entry = Tkinter.Entry(window, textvariable=formula, font='Monospace 32', background=bg, foreground='blue', insertbackground='blue')
-    error = sdltextfield.TextField((10, 300), foreground=(255,0,0), focused=False)
+    error = sdltextfield.TextField((10, 400), foreground=(255,0,0), focused=False, font=font)
     #error = Tkinter.Label(window, font='VeraSans 32', background=bg, foreground='red')
     while True:
         run_mainloop(error, formula, outfd, screen)
