@@ -13,6 +13,9 @@ class TextField(object):
 if __name__ == '__main__': 
     pygame.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    TextField((100, 200)).draw(screen)
-    pygame.display.flip()
-    pygame.time.delay(2000)
+    while True:
+        event = pygame.event.poll()
+        if event.type in [pygame.QUIT, pygame.MOUSEBUTTONDOWN]:
+            break
+        TextField((100, 200)).draw(screen)
+        pygame.display.flip()
