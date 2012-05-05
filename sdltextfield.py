@@ -18,7 +18,9 @@ class TextField(object):
 
     def handle_key(self, event):
         if event.key == pygame.K_BACKSPACE:
-            self.text = self.text[:-1]
+            if self.point > 0:
+                self.text = self.text[:self.point-1] + self.text[self.point:]
+                self.point -= 1
         elif event.key == pygame.K_LEFT:
             if self.point > 0:
                 self.point -= 1
@@ -26,7 +28,8 @@ class TextField(object):
             if self.point < len(self.text):
                 self.point += 1
         elif event.unicode:
-            self.text += event.unicode
+            self.text = self.text[:self.point] + event.unicode + self.text[self.point:]
+            self.point += 1
         print event, event.unicode, event.scancode
 
 if __name__ == '__main__': 
