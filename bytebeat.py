@@ -21,12 +21,15 @@ def run_mainloop(error, formula, outfd, screen):
     needed = int(min(rate * (time.time() - start + 1.5*interval/1000.0) - t,
                      3 * interval / 1000.0 * rate))
         
-    while needed % 8 != 0:
-        needed += 1
+    granularity = 1024
+    if needed % granularity != 0:
+        needed += granularity - needed % granularity
     print time.time() - last_time, needed
 
     try:
-        current_formula = shuntparse.parse(shuntparse.tokenize(formula.text))
+        new_formula = shuntparse.parse(shuntparse.tokenize(formula.text))
+        new_formula.eval({'t': Numeric.array(0)})
+        current_formula = new_formula
     except:
         _, exc, _ = sys.exc_info()
         error.text=repr(exc)
@@ -43,17 +46,17 @@ def run_mainloop(error, formula, outfd, screen):
     
     event = pygame.event.poll()
     if event.type in [pygame.QUIT, pygame.MOUSEBUTTONDOWN]:
-        sys.exit()
+        raise Exception()
     elif event.type == pygame.KEYDOWN:
         formula.handle_key(event)
     elif event.type == pygame.NOEVENT:
-        screen.fill(0)
         formula.draw(screen)
         error.draw(screen)
 
         if len(output) > 1:
+            pygame.draw.rect(screen, (0,0,0), (0, 0, screen.get_width(), 256))
             pygame.draw.lines(screen, (255, 255, 255), False,
-                              list(enumerate(map(ord, output))))
+                              list(enumerate(map(ord, output[:screen.get_width()]))))
         pygame.display.flip()
 
     outstart = time.time()
@@ -67,18 +70,20 @@ def run_mainloop(error, formula, outfd, screen):
         print "buffer overrun of %f" % (last_time - outstart)
         start += (last_time - outstart) / 2
 
+    if event.type == pygame.NOEVENT:
+        pygame.time.delay(interval)
+
 def make_window():
     outfd = open('/dev/dsp', 'w')
     pygame.init()
     screen = pygame.display.set_mode((0, 0))
-    formula = sdltextfield.TextField((10, 266))
-    formula.text = 'a = t * (t>>10 & 42), t >> 4'
+    formula = sdltextfield.TextField((10, 266), foreground=(0,0,255))
+    formula.text = 'a = t * (t>>10 & 42), t | t >> 4'
     #entry = Tkinter.Entry(window, textvariable=formula, font='Monospace 32', background=bg, foreground='blue', insertbackground='blue')
-    error = sdltextfield.TextField((10, 300))
+    error = sdltextfield.TextField((10, 300), foreground=(255,0,0), focused=False)
     #error = Tkinter.Label(window, font='VeraSans 32', background=bg, foreground='red')
     while True:
         run_mainloop(error, formula, outfd, screen)
-        pygame.time.delay(interval)
 
 if __name__ == '__main__':
     make_window()
