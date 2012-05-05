@@ -9,7 +9,10 @@ class TextField(object):
         self.pos = pos
 
     def draw(self, surface):
+        width, height = self.font.size(self.text)
         surface.blit(self.font.render(self.text, 1, (255, 255, 255)), self.pos)
+        x, y = self.pos
+        pygame.draw.rect(surface, (255, 255, 255), (x + width, y, 1, height))
 
     def handle_key(self, event):
         if event.key == pygame.K_BACKSPACE:
@@ -26,8 +29,9 @@ if __name__ == '__main__':
         event = pygame.event.poll()
         if event.type in [pygame.QUIT, pygame.MOUSEBUTTONDOWN]:
             break
-        if event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN:
             field.handle_key(event)
-        screen.fill(0)
-        field.draw(screen)
-        pygame.display.flip()
+        elif event.type == pygame.NOEVENT:
+            screen.fill(0)
+            field.draw(screen)
+            pygame.display.flip()
