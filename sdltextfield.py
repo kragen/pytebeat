@@ -1,20 +1,32 @@
 #!/usr/bin/python
+"""Text editor class for PyGame.
+
+This is for my bytebeat livecoding performance software.
+
+"""
 
 import pygame
 
 class TextField(object):
-    def __init__(self, pos):
-        self.text = 'hello, world'
-        self.font = pygame.font.Font(None, 96)
+    def __init__(self, pos, text='hello, world', focused=True, font=None, background=0, foreground=(255, 255, 255)):
         self.pos = pos
-        self.point = len(self.text)
+        self.text = text
+        self.font = font or pygame.font.Font(None, 48)
+        self.point = len(text)
+        self.focused = focused
+        self.background = background
+        self.foreground = foreground
 
     def draw(self, surface):
-        initial = self.text[:self.point]
-        width, height = self.font.size(initial)
-        surface.blit(self.font.render(self.text, 1, (255, 255, 255)), self.pos)
         x, y = self.pos
-        pygame.draw.rect(surface, (255, 255, 255), (x + width, y, 1, height))
+        pygame.draw.rect(surface, self.background,
+                         (x, y,
+                          surface.get_width()-x, self.font.get_linesize()))
+        surface.blit(self.font.render(self.text, 1, self.foreground), self.pos)
+        if self.focused:
+            initial = self.text[:self.point]
+            width, height = self.font.size(initial)
+            pygame.draw.rect(surface, self.foreground, (x + width, y, 1, height))
 
     def handle_key(self, event):
         if event.key == pygame.K_BACKSPACE:
@@ -35,7 +47,7 @@ class TextField(object):
 if __name__ == '__main__': 
     pygame.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    field = TextField((100, 200))
+    field = TextField((100, 200), foreground=(255, 0, 0))
     while True:
         event = pygame.event.poll()
         if event.type in [pygame.QUIT, pygame.MOUSEBUTTONDOWN]:
@@ -43,6 +55,7 @@ if __name__ == '__main__':
         elif event.type == pygame.KEYDOWN:
             field.handle_key(event)
         elif event.type == pygame.NOEVENT:
-            screen.fill(0)
             field.draw(screen)
             pygame.display.flip()
+        else:
+            print event
