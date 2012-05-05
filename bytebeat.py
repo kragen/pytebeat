@@ -1,44 +1,21 @@
-#!/usr/local/bin/python2.7
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+# next items:
+# - an SDL one-line text editor so I can dump Tkinter!
+# - vertical waveform display
+# - integer object has no attribute astype
+# - improve parse errors
 
-import sys, wave, Tkinter, os, time, subprocess, pygame, shuntparse, Numeric
-
-# play_command = None
-# for candidate in ['/usr/bin/aplay', '/usr/bin/afplay']:
-#     if os.path.exists(candidate):
-#         play_command = candidate
-# if play_command is None:
-#     raise "No player found"
+import sys, wave, os, time, subprocess, pygame, shuntparse, Numeric, sdltextfield
 
 rate = 8000
 
-# current_wavfile = 3
-# def new_wavfile():
-#     n = 1
-#     while True:
-#         filename = '/tmp/music%d.wav' % n
-#         if not os.path.exists(filename):
-#             break
-#         n += 1
-#     outfd = open(filename, 'wb')
-
-#     outfd.seek(2**31)
-#     outfd.write('\0')
-#     outfd.flush()
-#     outfd.seek(0)
-    
-#     out = wave.open(outfd, 'w')
-#     out.setnchannels(1)
-#     out.setsampwidth(1)
-#     out.setnframes(2**30-1)
-#     out.setframerate(rate)
-#     return filename, out, outfd
-
-current_formula = lambda t: t
+current_formula = None
 t = 0
 interval = 33
 last_time = start = time.time() + 1
-def send_frames(error, formula, out, outfd, screen):
+    
+def run_mainloop(error, formula, outfd, screen):
     global current_formula, t, last_time, start
 
     needed = int(min(rate * (time.time() - start + 1.5*interval/1000.0) - t,
@@ -49,12 +26,12 @@ def send_frames(error, formula, out, outfd, screen):
     print time.time() - last_time, needed
 
     try:
-        current_formula = shuntparse.parse(shuntparse.tokenize(formula.get()))
+        current_formula = shuntparse.parse(shuntparse.tokenize(formula.text))
     except:
         _, exc, _ = sys.exc_info()
-        error.configure(text=repr(exc))
+        error.text=repr(exc)
     else:
-        error.configure(text='')
+        error.text=''
 
     output = ''
 
@@ -62,16 +39,23 @@ def send_frames(error, formula, out, outfd, screen):
         output = current_formula.eval({'t': Numeric.arange(t, t+needed)}).astype(Numeric.UInt8).tostring()
         t += needed
     except:
-        error.configure(text=str(sys.exc_info()[1]))
+        error.text=str(sys.exc_info()[1])
     
-    screen.fill(0)
-    pygame.event.poll()
-    if len(output) > 1:
-        pygame.draw.lines(screen, (255, 255, 255), False,
-                          list(enumerate(map(ord, output))))
-    pygame.display.flip()
+    event = pygame.event.poll()
+    if event.type in [pygame.QUIT, pygame.MOUSEBUTTONDOWN]:
+        sys.exit()
+    elif event.type == pygame.KEYDOWN:
+        formula.handle_key(event)
+    elif event.type == pygame.NOEVENT:
+        screen.fill(0)
+        formula.draw(screen)
+        error.draw(screen)
 
-    #out.writeframesraw(''.join(output))
+        if len(output) > 1:
+            pygame.draw.lines(screen, (255, 255, 255), False,
+                              list(enumerate(map(ord, output))))
+        pygame.display.flip()
+
     outstart = time.time()
     outfd.write(output)
     outfd.flush()
@@ -83,25 +67,18 @@ def send_frames(error, formula, out, outfd, screen):
         print "buffer overrun of %f" % (last_time - outstart)
         start += (last_time - outstart) / 2
 
-    error.after(interval, lambda: send_frames(error, formula, out, outfd, screen))
-
 def make_window():
-    window = Tkinter.Tk()
-    bg = 'black'
-    print window.configure(background=bg)
-    formula = Tkinter.StringVar()
-    formula.set('a = t * (t>>10 & 42), t >> 4')
-    entry = Tkinter.Entry(window, textvariable=formula, font='Monospace 32', background=bg, foreground='blue', insertbackground='blue')
-    entry.pack(fill='x', side='top')
-    entry.focus()
-    error = Tkinter.Label(window, font='VeraSans 32', background=bg, foreground='red')
-    error.pack(fill='x', side='top')
-    #filename, out, outfd = new_wavfile()
-    out = outfd = open('/dev/dsp', 'w')
+    outfd = open('/dev/dsp', 'w')
+    pygame.init()
     screen = pygame.display.set_mode((0, 0))
-    send_frames(error, formula, out, outfd, screen)
-    #window.after(2*interval, lambda: subprocess.Popen([play_command, filename]))
-    window.mainloop()
+    formula = sdltextfield.TextField((10, 266))
+    formula.text = 'a = t * (t>>10 & 42), t >> 4'
+    #entry = Tkinter.Entry(window, textvariable=formula, font='Monospace 32', background=bg, foreground='blue', insertbackground='blue')
+    error = sdltextfield.TextField((10, 300))
+    #error = Tkinter.Label(window, font='VeraSans 32', background=bg, foreground='red')
+    while True:
+        run_mainloop(error, formula, outfd, screen)
+        pygame.time.delay(interval)
 
 if __name__ == '__main__':
     make_window()
