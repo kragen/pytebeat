@@ -7,9 +7,11 @@ class TextField(object):
         self.text = 'hello, world'
         self.font = pygame.font.Font(None, 96)
         self.pos = pos
+        self.point = len(self.text)
 
     def draw(self, surface):
-        width, height = self.font.size(self.text)
+        initial = self.text[:self.point]
+        width, height = self.font.size(initial)
         surface.blit(self.font.render(self.text, 1, (255, 255, 255)), self.pos)
         x, y = self.pos
         pygame.draw.rect(surface, (255, 255, 255), (x + width, y, 1, height))
@@ -17,6 +19,12 @@ class TextField(object):
     def handle_key(self, event):
         if event.key == pygame.K_BACKSPACE:
             self.text = self.text[:-1]
+        elif event.key == pygame.K_LEFT:
+            if self.point > 0:
+                self.point -= 1
+        elif event.key == pygame.K_RIGHT:
+            if self.point < len(self.text):
+                self.point += 1
         elif event.unicode:
             self.text += event.unicode
         print event, event.unicode, event.scancode
