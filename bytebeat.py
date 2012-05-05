@@ -49,9 +49,10 @@ def run_mainloop(error, formula, outfd, screen):
     if event.type in [pygame.QUIT, pygame.MOUSEBUTTONDOWN]:
         # For some reason, normal ways of exiting aren’t working.
         os.kill(os.getpid(), 9)
-    elif event.type == pygame.KEYDOWN:
-        formula.handle_key(event)
+    elif event.type in [pygame.KEYDOWN, pygame.KEYUP]:
+        formula.handle_keyevent(event)
     elif event.type == pygame.NOEVENT:
+        formula.poll()
         formula.draw(screen)
         error.draw(screen)
 
@@ -82,7 +83,7 @@ def make_window():
     font = pygame.font.Font(default_font, 24) if os.path.exists(default_font) else None
     
     
-    screen = pygame.display.set_mode((0, 0), 0&pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     formula = sdltextfield.TextField((10, 266), foreground=(0,0,255), font=font)
     formula.text = 'a = t * (t>>10 & 42), t | t >> 4'
     #entry = Tkinter.Entry(window, textvariable=formula, font='Monospace 32', background=bg, foreground='blue', insertbackground='blue')

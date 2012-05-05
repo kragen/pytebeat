@@ -6,6 +6,7 @@ This is for my bytebeat livecoding performance software.
 """
 
 import pygame
+import time
 
 class TextField(object):
     def __init__(self, pos, text='hello, world', focused=True, font=None, background=0, foreground=(255, 255, 255)):
@@ -16,6 +17,10 @@ class TextField(object):
         self.focused = focused
         self.background = background
         self.foreground = foreground
+        self.last_keydown = None
+        self.initial_autorepeat_delay = 0.5
+        self.autorepeat_delay = 0.1
+        self.next_keyrepeat = None
 
     def draw(self, surface):
         x, y = self.pos
@@ -44,6 +49,23 @@ class TextField(object):
             self.point += 1
         print event, event.unicode, event.scancode
 
+    def handle_keyevent(self, event):
+        if event.type == pygame.KEYDOWN:
+            self.last_keydown = event
+            self.handle_key(event)
+            self.next_keyrepeat = time.time() + self.initial_autorepeat_delay
+        else:
+            if self.last_keydown and event.key == self.last_keydown.key:
+                self.last_keydown = None
+                self.next_keyrepeat = None
+
+    def poll(self):
+        if self.last_keydown:
+            now = time.time()
+            while now > self.next_keyrepeat:
+                self.handle_key(self.last_keydown)
+                self.next_keyrepeat += self.autorepeat_delay
+
 if __name__ == '__main__': 
     pygame.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -52,9 +74,10 @@ if __name__ == '__main__':
         event = pygame.event.poll()
         if event.type in [pygame.QUIT, pygame.MOUSEBUTTONDOWN]:
             break
-        elif event.type == pygame.KEYDOWN:
-            field.handle_key(event)
+        elif event.type in [pygame.KEYUP, pygame.KEYDOWN]:
+            field.handle_keyevent(event)
         elif event.type == pygame.NOEVENT:
+            field.poll()
             field.draw(screen)
             pygame.display.flip()
         else:
