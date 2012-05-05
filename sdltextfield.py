@@ -18,8 +18,8 @@ class TextField(object):
         self.background = background
         self.foreground = foreground
         self.last_keydown = None
-        self.initial_autorepeat_delay = 0.5
-        self.autorepeat_delay = 0.1
+        self.initial_autorepeat_delay = 0.25
+        self.autorepeat_delay = 0.05
         self.next_keyrepeat = None
 
     def draw(self, surface):
