@@ -84,8 +84,9 @@ def make_window():
     
     
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    pygame.mouse.set_visible(False)
     formula = sdltextfield.TextField((10, 266), foreground=(0,0,255), font=font)
-    formula.text = 'a = t * (t>>10 & 42), t | t >> 4'
+    formula.text = 'a = t * (t>>10 & 42), t >> 5 | t >> 4'
     #entry = Tkinter.Entry(window, textvariable=formula, font='Monospace 32', background=bg, foreground='blue', insertbackground='blue')
     error = sdltextfield.TextField((10, 400), foreground=(255,0,0), focused=False, font=font)
     #error = Tkinter.Label(window, font='VeraSans 32', background=bg, foreground='red')
