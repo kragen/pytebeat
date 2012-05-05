@@ -52,7 +52,7 @@ def send_frames(error, formula, out, outfd, screen):
         current_formula = shuntparse.parse(shuntparse.tokenize(formula.get()))
     except:
         _, exc, _ = sys.exc_info()
-        error.configure(text=str(exc))
+        error.configure(text=repr(exc))
     else:
         error.configure(text='')
 
