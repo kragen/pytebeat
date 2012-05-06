@@ -66,6 +66,10 @@ class TextField(object):
             self.point = max(self.point - inc, 0)
         elif event.key == pygame.K_RIGHT:
             self.point = min(self.point + inc, len(self.text))
+        elif event.key == pygame.K_HOME:
+            self.point = 0
+        elif event.key == pygame.K_END:
+            self.point = len(self.text)
         elif event.unicode:
             self.text = self.text[:self.point] + event.unicode + self.text[self.point:]
             self.point += 1
