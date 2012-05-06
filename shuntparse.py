@@ -24,10 +24,10 @@ import Numeric
 
 class ParseError(Exception): pass
 class MissingOperator(ParseError): pass
+class TrailingOperator(ParseError): pass
 class ConsecutiveOperators(ParseError): pass
 class UnmatchedRightParen(ParseError): pass
 class UnmatchedLeftParen(ParseError): pass
-class EmptyParens(ParseError): pass
 class UnknownOpPrecedence(ParseError): pass # Can’t happen
 
 def parse(tokens):
@@ -46,8 +46,8 @@ def parse(tokens):
             out.append(token)
 
         elif token.isa(RightParen):
-            if last.isa(LeftParen):
-                raise EmptyParens(token)
+            if last.isa(Op):
+                raise ConsecutiveOperators(token)
             while ops and not ops[-1].isa(LeftParen):
                 ops.pop().apply(out)
             if not ops:
@@ -67,6 +67,9 @@ def parse(tokens):
 
         last = token
 
+    if last.isa(Op):
+        raise TrailingOperator(last)
+    
     while ops:
         ops.pop().apply(out)
 
