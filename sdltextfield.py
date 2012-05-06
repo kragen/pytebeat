@@ -34,7 +34,7 @@ class KeyRepeater(object):
 
 
 class TextField(object):
-    def __init__(self, pos, text='hello, world', focused=True, font=None, background=0, foreground=(255, 255, 255), selected_background=(64,64,64)):
+    def __init__(self, pos, text='', focused=True, font=None, background=0, foreground=(255, 255, 255), selected_background=(64,64,64)):
         self.pos = pos
         self.text = text
         self.font = font or pygame.font.Font(None, 48)
@@ -124,7 +124,6 @@ class TextField(object):
             if self.selection():
                 self.delete(self.mark, self.point)
             self.insert(event.unicode)
-        print event, event.unicode, event.scancode
 
     def insert(self, text):
         self.text = self.text[:self.point] + text + self.text[self.point:]
@@ -140,7 +139,7 @@ class TextField(object):
 if __name__ == '__main__': 
     pygame.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    field = TextField((100, 200), foreground=(255, 0, 0))
+    field = TextField((100, 200), text='3 hello, world 3', foreground=(255, 0, 0))
     while True:
         event = pygame.event.poll()
         if event.type in [pygame.QUIT, pygame.MOUSEBUTTONDOWN]:
