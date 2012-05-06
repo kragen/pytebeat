@@ -78,8 +78,28 @@ def run_mainloop(error, formula, outfd, screen):
         pygame.display.flip()
         pygame.time.delay(interval)
 
+class Tee(object):
+    def __init__(self, a, b):
+        self.contents = (a, b)
+    def write(self, data):
+        for item in self.contents:
+            item.write(data)
+    def flush(self):
+        for item in self.contents:
+            item.flush()
+
+def open_new_outfile():
+    i = 1
+    while True:
+        filename = 'bytebeat_%d.raw' % i
+        if not os.path.exists(filename):
+            return open(filename, 'w')
+        i += 1
+
 def make_window():
     outfd = open('/dev/dsp', 'w')
+    outfile2 = open_new_outfile()
+    outfd = Tee(outfd, outfile2)
     pygame.init()
     default_font = '/home/kragen/.fonts/a/anami.ttf'
     font = pygame.font.Font(default_font, 24) if os.path.exists(default_font) else None
