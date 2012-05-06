@@ -8,6 +8,31 @@ This is for my bytebeat livecoding performance software.
 import pygame
 import time
 
+class KeyRepeater(object):
+    def __init__(self, target):
+        self.last_keydown = None
+        self.next_keyrepeat = None
+        self.initial_autorepeat_delay = 0.25
+        self.autorepeat_delay = 0.05
+
+    def handle_keyevent(self, event, target):
+        if event.type == pygame.KEYDOWN:
+            self.last_keydown = event
+            target.handle_key(event)
+            self.next_keyrepeat = time.time() + self.initial_autorepeat_delay
+        else:
+            if self.last_keydown and event.key == self.last_keydown.key:
+                self.last_keydown = None
+                self.next_keyrepeat = None
+
+    def poll(self, target):
+        if self.last_keydown:
+            now = time.time()
+            while now > self.next_keyrepeat:
+                target.handle_key(self.last_keydown)
+                self.next_keyrepeat += self.autorepeat_delay
+
+
 class TextField(object):
     def __init__(self, pos, text='hello, world', focused=True, font=None, background=0, foreground=(255, 255, 255)):
         self.pos = pos
@@ -17,10 +42,7 @@ class TextField(object):
         self.focused = focused
         self.background = background
         self.foreground = foreground
-        self.last_keydown = None
-        self.initial_autorepeat_delay = 0.25
-        self.autorepeat_delay = 0.05
-        self.next_keyrepeat = None
+        self.repeater = KeyRepeater(self)
 
     def draw(self, surface):
         x, y = self.pos
@@ -50,21 +72,10 @@ class TextField(object):
         print event, event.unicode, event.scancode
 
     def handle_keyevent(self, event):
-        if event.type == pygame.KEYDOWN:
-            self.last_keydown = event
-            self.handle_key(event)
-            self.next_keyrepeat = time.time() + self.initial_autorepeat_delay
-        else:
-            if self.last_keydown and event.key == self.last_keydown.key:
-                self.last_keydown = None
-                self.next_keyrepeat = None
+        self.repeater.handle_keyevent(event, self)
 
     def poll(self):
-        if self.last_keydown:
-            now = time.time()
-            while now > self.next_keyrepeat:
-                self.handle_key(self.last_keydown)
-                self.next_keyrepeat += self.autorepeat_delay
+        self.repeater.poll(self)
 
 if __name__ == '__main__': 
     pygame.init()
