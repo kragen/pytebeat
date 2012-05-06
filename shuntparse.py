@@ -242,8 +242,9 @@ binary_denotations = {
     # This isn't correct, but it avoids Numeric's ArithmeticError:
     # Integer overflow in multiply.
     '*': lambda a, b: (a & (2**15-1)) * (b & (2**15-1)),
-    '/': operator.div,
-    '%': operator.mod,
+    # These two have to worry about SIGFPE from division by zero.
+    '/': lambda a, b: a / Numeric.where(b == 0, 1, b),
+    '%': lambda a, b: a % Numeric.where(b == 0, 1, b),
 
     '&&': lambda a, b: Numeric.where(a, Numeric.where(b, 1, 0), 0),
     '||': lambda a, b: Numeric.where(a, 1, Numeric.where(b, 1, 0)),
