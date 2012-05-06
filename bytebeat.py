@@ -40,7 +40,8 @@ def eval_formula(error, formula):
         t += needed
         return rv
     except:
-        error.text=str(sys.exc_info()[1])
+        if current_formula:
+            error.text=str(sys.exc_info()[1])
         return ''
     
 def run_mainloop(error, formula, outfd, screen):
