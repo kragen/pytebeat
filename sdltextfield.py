@@ -34,14 +34,15 @@ class KeyRepeater(object):
 
 
 class TextField(object):
-    def __init__(self, pos, text='hello, world', focused=True, font=None, background=0, foreground=(255, 255, 255)):
+    def __init__(self, pos, text='hello, world', focused=True, font=None, background=0, foreground=(255, 255, 255), selected_background=(64,64,64)):
         self.pos = pos
         self.text = text
         self.font = font or pygame.font.Font(None, 48)
-        self.point = len(text)
+        self.mark = self.point = len(text)
         self.focused = focused
         self.background = background
         self.foreground = foreground
+        self.selected_background = selected_background
         self.repeater = KeyRepeater(self)
 
     def draw(self, surface):
@@ -49,31 +50,86 @@ class TextField(object):
         pygame.draw.rect(surface, self.background,
                          (x, y,
                           surface.get_width()-x, self.font.get_linesize()))
+
+        if self.selection():
+            a, _ = self.font.size(self.text[:self.mark])
+            b, height = self.font.size(self.text[:self.point])
+            if b < a:
+                b, a = a, b
+            pygame.draw.rect(surface, self.selected_background,
+                             (x + a, y, b - a, height))
+
         surface.blit(self.font.render(self.text, 1, self.foreground), self.pos)
         if self.focused:
             initial = self.text[:self.point]
             width, height = self.font.size(initial)
             pygame.draw.rect(surface, self.foreground, (x + width, y, 1, height))
 
+    def selection(self):
+        return self.mark != self.point
+
+    def unselect(self):
+        self.mark = self.point
+
+    def goto(self, where, event):
+        self.point = where
+        if not event.mod & pygame.KMOD_SHIFT:
+            self.unselect()
+
+    def delete(self, a, b):
+        if a > b:
+            a, b = b, a
+        self.text = self.text[:a] + self.text[b:]
+        self.point = a
+        self.unselect()
+
+    def number_at_point(self):
+        start, end = self.point, self.point
+        while start > 0 and self.text[start-1].isdigit():
+            start -= 1
+        while end < len(self.text) and self.text[end].isdigit():
+            end += 1
+        return start, end
+
+    def increment_number_at_point(self, by_what):
+        start, end = self.number_at_point()
+        if start == end:
+            return
+        n = int(self.text[start:end])
+        n += by_what
+        self.delete(start, end)
+        self.insert(str(n))
+
     def handle_key(self, event):
         inc = 4 if event.mod & pygame.KMOD_ALT else 1
         if event.key == pygame.K_BACKSPACE:
-            if self.point > 0:
-                delstart = max(self.point - inc, 0)
-                self.text = self.text[:delstart] + self.text[self.point:]
-                self.point = delstart
+            if self.selection():
+                self.delete(self.mark, self.point)
+            else:
+                self.delete(max(self.point - inc, 0), self.point)
+
         elif event.key == pygame.K_LEFT:
-            self.point = max(self.point - inc, 0)
+            self.goto(max(self.point - inc, 0), event)
         elif event.key == pygame.K_RIGHT:
-            self.point = min(self.point + inc, len(self.text))
+            self.goto(min(self.point + inc, len(self.text)), event)
+        elif event.key == pygame.K_UP:
+            self.increment_number_at_point(1)
+        elif event.key == pygame.K_DOWN:
+            self.increment_number_at_point(-1)
         elif event.key == pygame.K_HOME:
-            self.point = 0
+            self.goto(0, event)
         elif event.key == pygame.K_END:
-            self.point = len(self.text)
+            self.goto(len(self.text), event)
         elif event.unicode:
-            self.text = self.text[:self.point] + event.unicode + self.text[self.point:]
-            self.point += 1
+            if self.selection():
+                self.delete(self.mark, self.point)
+            self.insert(event.unicode)
         print event, event.unicode, event.scancode
+
+    def insert(self, text):
+        self.text = self.text[:self.point] + text + self.text[self.point:]
+        self.point += len(text)
+        self.unselect()
 
     def handle_keyevent(self, event):
         self.repeater.handle_keyevent(event, self)
