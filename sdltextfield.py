@@ -34,16 +34,16 @@ class TextField(object):
             pygame.draw.rect(surface, self.foreground, (x + width, y, 1, height))
 
     def handle_key(self, event):
+        inc = 4 if event.mod & pygame.KMOD_ALT else 1
         if event.key == pygame.K_BACKSPACE:
             if self.point > 0:
-                self.text = self.text[:self.point-1] + self.text[self.point:]
-                self.point -= 1
+                delstart = max(self.point - inc, 0)
+                self.text = self.text[:delstart] + self.text[self.point:]
+                self.point = delstart
         elif event.key == pygame.K_LEFT:
-            if self.point > 0:
-                self.point -= 1
+            self.point = max(self.point - inc, 0)
         elif event.key == pygame.K_RIGHT:
-            if self.point < len(self.text):
-                self.point += 1
+            self.point = min(self.point + inc, len(self.text))
         elif event.unicode:
             self.text = self.text[:self.point] + event.unicode + self.text[self.point:]
             self.point += 1
