@@ -12,7 +12,7 @@ rate = 8000
 current_formula = None
 t = 0
 interval = 33
-last_time = start = time.time() + 1
+last_time = start = time.time()
 
 def eval_formula(error, formula):
     global current_formula, t, last_time, start
