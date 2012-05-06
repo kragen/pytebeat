@@ -239,7 +239,9 @@ binary_denotations = {
     '>>': operator.rshift,
     '+': operator.add,
     '-': operator.sub,
-    '*': operator.mul,
+    # This isn't correct, but it avoids Numeric's ArithmeticError:
+    # Integer overflow in multiply.
+    '*': lambda a, b: (a & (2**15-1)) * (b & (2**15-1)),
     '/': operator.div,
     '%': operator.mod,
 
