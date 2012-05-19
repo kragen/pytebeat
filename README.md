@@ -40,6 +40,61 @@ muted or something.
 
 Pressing any mouse button should exit right away.
 
+The formula editor
+------------------
+
+I wrote a quick-and-dirty text edit field, with the special feature
+that the up and down arrows increment and decrement the number your
+cursor is on.  Beyond that, it supports left and right arrow keys with
+the usual hold-shift-to-select-for-deletion technique of modern GUIs.
+Home and End go to the beginning or end of the field, and of course
+backspace deletes.  The Alt key multiplies your movements or deletions
+by 4.
+
+There’s no scrolling, so keep your formula short, or you won’t be able
+to see what you’re doing.
+
+The formula language
+--------------------
+
+Pytebeat interprets an expression in a common subset of C and JS.
+(Yes, that means I wrote a C-subset interpreter in Python.  Hush, you;
+it seemed like a good idea at the time.  It uses a SIMD evaluation
+approach with Numeric, so it isn’t a significant performance
+bottleneck.  And as a pastime it sure beats watching TV or drinking.)
+
+The supported expression subset includes assignment and the comma
+operator, so you can write a comma-separated series of assignments.
+The other supported operators are `|`, `^`, `&`, `<<`, `>>`, `+`
+(binary), `-` (unary and binary), `*`, `/`, `%`, `==`, `!=`, `<`, `>`,
+`<=`, `>=`, `&&`, and `||`.  The only significant bytebeat operators
+omitted are `?:`, `>>>`, and `[]`.
+
+Precedence is as in C, unless I fucked it up.
+
+The rest of the expression language consists of numbers (decimal only
+so far) and variables.
+
+However, that’s not all there is to the story!  Several of the
+operators have weird incompatibilities.
+
+Division, of course, behaves differently between C and JS.  Pytebeat
+produces integer results, as in C, but doesn’t crash on division by
+zero, as in JS.  Both `/` and `%` simply return 1 on division by zero.
+(Because division-by-zero errors are incompatible with livecoding.)
+
+The `&&` and `||` operators ought to be short-circuiting, but they are
+not.  SIMD short-circuiting is difficult.
+
+`*` was giving me ArithmeticError exceptions in Numeric.  So I “fixed”
+it to only use the low 15 bits of each multiplicand.  That means
+you’ll get wrong answers as soon as either of your multiplicands goes
+over 32767.  I think at least the low 15 bits of the answer will be
+correct, though, so for bytebeat purposes, you’ll probably never
+notice.  I’d be fabulously happy if you can suggest a better approach
+to this problem.  You’d think that Numeric would have a
+truncating-multiply function somewhere, but if so, I can’t find it.
+
 Background
 ----------
 
@@ -55,6 +110,7 @@ sound the same.
 
 It’s not the only program you can use for livecoding bytebeat.  I’ve
 used the [Entropedia Flash applet][1] too, and there’s also an iOS app
-called GlitchMachine that’s suitable for livecoding.
+called GlitchMachine that’s suitable for livecoding.  And I’ve heard
+that GlitchEd may be suitable for livecoding too.
 
 [1]: http://entropedia.co.uk/generative_music/
