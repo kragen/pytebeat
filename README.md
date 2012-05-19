@@ -4,6 +4,8 @@ generate music while the program is running, in front of an audience.
 
 [0]: http://canonical.org/~kragen/bytebeat/
 
+![(screenshot)](https://github.com/kragen/pytebeat/raw/master/screenshot.png)
+
 Prerequisites (or why it probably won’t work on your computer)
 --------------------------------------------------------------
 
