@@ -54,6 +54,7 @@ sound the same.
 [2]: http://canonical.org/~kragen/bytebeat/la-cigale.wav.gz
 
 It’s not the only program you can use for livecoding bytebeat.  I’ve
-used the [Entropedia Flash applet][1] too, and there’s a 
+used the [Entropedia Flash applet][1] too, and there’s also an iOS app
+called GlitchMachine that’s suitable for livecoding.
 
 [1]: http://entropedia.co.uk/generative_music/
