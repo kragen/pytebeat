@@ -28,11 +28,11 @@ ship with PyGame or SDL anyway.)
 How to use it
 -------------
 
-    ./bytebeat.py
+    ./pytebeat.py
 
 or if that craps out complaining about `/dev/dsp`, try
 
-    aoss ./bytebeat.py
+    aoss ./pytebeat.py
 
 Then edit the C expression in blue using your cursor keys and stuff.
 It ought to make sound right away. If not, check to see if you’re
