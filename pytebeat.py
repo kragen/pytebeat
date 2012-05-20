@@ -5,7 +5,13 @@
 # - integer object has no attribute astype
 # - improve parse errors
 
-import sys, wave, os, time, subprocess, pygame, shuntparse, Numeric, sdltextfield
+import sys, wave, os, time, subprocess, pygame, shuntparse, sdltextfield
+
+try:
+    from Numeric import array, arange, UInt8
+except ImportError:
+    from numpy import array, arange, uint8
+    UInt8 = uint8
 
 rate = 8000
 
@@ -27,7 +33,7 @@ def eval_formula(error, formula):
 
     try:
         new_formula = shuntparse.parse(shuntparse.tokenize(formula.text))
-        new_formula.eval({'t': Numeric.array(0)})
+        new_formula.eval({'t': array(0)})
         current_formula = new_formula
     except:
         _, exc, _ = sys.exc_info()
@@ -36,7 +42,7 @@ def eval_formula(error, formula):
         error.text=''
 
     try:
-        rv = current_formula.eval({'t': Numeric.arange(t, t+needed)}).astype(Numeric.UInt8).tostring()
+        rv = current_formula.eval({'t': arange(t, t+needed)}).astype(UInt8).tostring()
         t += needed
         return rv
     except:

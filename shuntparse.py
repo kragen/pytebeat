@@ -20,7 +20,11 @@ import traceback
 import subprocess
 import sys
 
-import Numeric
+try:
+    from Numeric import where, arange, UInt8
+except ImportError:
+    from numpy import where, arange, uint8
+    UInt8 = uint8
 
 class ParseError(Exception): pass
 class MissingOperator(ParseError): pass
@@ -246,23 +250,23 @@ binary_denotations = {
     # Integer overflow in multiply.
     '*': lambda a, b: (a & (2**15-1)) * (b & (2**15-1)),
     # These two have to worry about SIGFPE from division by zero.
-    '/': lambda a, b: a / Numeric.where(b == 0, 1, b),
-    '%': lambda a, b: a % Numeric.where(b == 0, 1, b),
+    '/': lambda a, b: a / where(b == 0, 1, b),
+    '%': lambda a, b: a % where(b == 0, 1, b),
 
-    '&&': lambda a, b: Numeric.where(a, Numeric.where(b, 1, 0), 0),
-    '||': lambda a, b: Numeric.where(a, 1, Numeric.where(b, 1, 0)),
-    '==': lambda a, b: Numeric.where(a == b, 1, 0),
-    '!=': lambda a, b: Numeric.where(a != b, 1, 0),
-    '<': lambda a, b: Numeric.where(a < b, 1, 0),
-    '>': lambda a, b: Numeric.where(a > b, 1, 0),
-    '<=': lambda a, b: Numeric.where(a <= b, 1, 0),
-    '>=': lambda a, b: Numeric.where(a >= b, 1, 0),
+    '&&': lambda a, b: where(a, where(b, 1, 0), 0),
+    '||': lambda a, b: where(a, 1, where(b, 1, 0)),
+    '==': lambda a, b: where(a == b, 1, 0),
+    '!=': lambda a, b: where(a != b, 1, 0),
+    '<': lambda a, b: where(a < b, 1, 0),
+    '>': lambda a, b: where(a > b, 1, 0),
+    '<=': lambda a, b: where(a <= b, 1, 0),
+    '>=': lambda a, b: where(a >= b, 1, 0),
 }
 
 unary_denotations = {
     '~': operator.inv,
     '-': operator.neg,
-    '!': lambda x: Numeric.where(x, 0, 1),
+    '!': lambda x: where(x, 0, 1),
 }
 
 def ps(astr):
@@ -286,8 +290,8 @@ def play_bytebeat(astr, out):
         print formula
 
     while True:
-        x = formula.eval({'t': Numeric.arange(t, t+n_samples)})
-        out.write(x.astype(Numeric.UInt8).tostring())
+        x = formula.eval({'t': arange(t, t+n_samples)})
+        out.write(x.astype(UInt8).tostring())
         t += n_samples
 
 if __name__ == '__main__':

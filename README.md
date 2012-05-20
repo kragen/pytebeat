@@ -13,19 +13,21 @@ In case this is not legally possible, I grant any entity the right to
 use this work for any purpose, without any conditions, unless such
 conditions are required by law.
 
-Prerequisites (or why it probably won’t work on your computer)
---------------------------------------------------------------
+Prerequisites
+-------------
 
-If this command works for you, you can probably run it with no
-trouble:
+If one of these commands works for you, you can probably run it with
+no trouble:
+
+    sudo apt-get install alsa-oss python-numpy python-pygame
+
+or
 
     sudo apt-get install alsa-oss python-numeric python-pygame
 
 My netbook is running a pretty obsolete version of Linux, so this uses
-the following obsolete interfaces:
-
-- Numeric (the old version of numpy)
-- `/dev/dsp`, the OSS device interface that can be implemented by the
+the obsolete interface
+`/dev/dsp`, the OSS device interface that can be implemented by the
   `aoss` command from the alsa-oss package.
 
 It also uses PyGame, the Python interface to SDL.
