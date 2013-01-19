@@ -152,7 +152,8 @@ class Variable(Leaf):
     
 class Constant(Leaf):
     def eval(self, env):
-        return int(self.text)
+        return (int(self.text, 16) if self.text.startswith('0x')
+                else int(self.text))
 
 def tokenize(string):
     for mo in re.finditer(r'\w+|&&|\|\||==|>>>|>>|<<|<=|>=|!=|[-&|^+()~!*/,%<>=]', string):
