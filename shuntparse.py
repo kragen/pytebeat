@@ -145,7 +145,10 @@ class BinaryOp(Op):
         return binary_denotations[self.text](left, right)
 
 class BinaryMinus(BinaryOp): pass
-class Leaf(Token): pass
+class Leaf(Token):
+    def rpn(self):
+        return self.text
+    
 class Variable(Leaf):
     def eval(self, env):
         return env[self.text]
@@ -215,6 +218,13 @@ class BinaryApply(Apply):
             left = self.left.eval(env)
             right = self.right.eval(env)
             return self.op.eval(left, right)
+    def rpn(self):
+        if self.op.text == '=':
+            return ' '.join([self.right.rpn(), 'constant', self.left.text])
+        elif self.op.text == ',':
+            return ' '.join([self.left.rpn(), '', self.right.rpn()])
+        else:
+            return ' '.join([self.left.rpn(), self.right.rpn(), self.op.text])
 
 class UnaryApply(Apply):
     def __init__(self, op, operand):
@@ -226,6 +236,11 @@ class UnaryApply(Apply):
     def eval(self, env):
         value = self.operand.eval(env)
         return self.op.eval(value)
+    def rpn(self):
+        if self.op.text == '-':
+            return ' '.join(['0', self.operand.rpn(), '-'])
+        else:
+            return ' '.join([self.operand.rpn(), self.op.text])
 
 # Here we introduce a dependency on Numeric, and force return values
 # of booleans and comparators to be (possibly zero-dimensional)
@@ -289,6 +304,7 @@ def play_bytebeat(astr, out):
         return
     if out is not sys.stdout:
         print formula
+        print formula.rpn()
 
     while True:
         x = formula.eval({'t': arange(t, t+n_samples)})
