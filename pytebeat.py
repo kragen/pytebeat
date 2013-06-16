@@ -14,7 +14,7 @@ except ImportError:
     UInt8 = uint8
 
 rate = 8000
-
+eqlog=open("eqlog.txt","a")
 current_formula = None
 t = 0
 interval = 33
@@ -34,11 +34,14 @@ def eval_formula(error, formula):
     try:
         new_formula = shuntparse.parse(shuntparse.tokenize(formula.text))
         new_formula.eval({'t': array(0)})
-        current_formula = new_formula
     except:
         _, exc, _ = sys.exc_info()
         error.text=repr(exc)
     else:
+        if current_formula != new_formula:
+            eqlog.write("%s %s" % ( int(time.time()), formula.text+"\n"))
+            eqlog.flush()
+        current_formula = new_formula
         error.text=''
 
     try:
