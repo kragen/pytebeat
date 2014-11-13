@@ -116,7 +116,8 @@ def make_window():
     formula = sdltextfield.TextField((10, 266), 
                                      foreground=(0,0,255),
                                      font=font,
-                                     text = 't >> 5 | t >> 4')
+                                     text = 't >> 5 | t >> 4',
+                                     width = screen.get_width() - 10)
     error = sdltextfield.TextField((10, 400), foreground=(255,0,0), focused=False, font=font)
     while True:
         run_mainloop(error, formula, outfd, screen)
