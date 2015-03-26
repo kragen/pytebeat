@@ -116,10 +116,12 @@ def make_window():
     
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pygame.mouse.set_visible(False)
+    print sys.argv
+    start_foruma = 't * 0' if len(sys.argv) < 2 else sys.argv[1]
     formula = sdltextfield.TextField((10, 266), 
                                      foreground=(0,0,255),
                                      font=font,
-                                     text = 't * 0')
+                                     text = start_foruma)
     error = sdltextfield.TextField((10, 400), foreground=(255,0,0), focused=False, font=font)
     while True:
         run_mainloop(error, formula, outfd, screen)
