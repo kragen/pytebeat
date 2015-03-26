@@ -5,7 +5,7 @@
 # - integer object has no attribute astype
 # - improve parse errors
 
-import sys, wave, os, time, subprocess, pygame, shuntparse, sdltextfield
+import sys, wave, os, time, subprocess, pygame, shuntparse, sdltextfield, errno
 
 try:
     from Numeric import array, arange, UInt8
@@ -106,7 +106,16 @@ def open_new_outfile():
         i += 1
 
 def make_window():
-    outfd = open('/dev/dsp', 'w')
+    try:
+        outfd = open('/dev/dsp', 'w')
+    except IOError, e:
+        if e.errno != errno.EACCES:
+            raise
+        # Probably we are on a system without Open Sound System, like
+        # most Linuxes of recent vintage.  Try invoking ALSA's aplay
+        # command instead.
+        outfd = os.popen('aplay -f U8', 'w')
+        
     outfile2 = open_new_outfile()
     outfd = Tee(outfd, outfile2)
     pygame.init()
@@ -121,7 +130,8 @@ def make_window():
     formula = sdltextfield.TextField((10, 266), 
                                      foreground=(0,0,255),
                                      font=font,
-                                     text = start_foruma)
+                                     text = start_foruma,
+                                     width = screen.get_width() - 10)
     error = sdltextfield.TextField((10, 400), foreground=(255,0,0), focused=False, font=font)
     while True:
         run_mainloop(error, formula, outfd, screen)

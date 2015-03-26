@@ -34,7 +34,9 @@ class KeyRepeater(object):
 
 
 class TextField(object):
-    def __init__(self, pos, text='', focused=True, font=None, background=0, foreground=(255, 255, 255), selected_background=(64,64,64)):
+    def __init__(self, pos, text='', focused=True, font=None, background=0,
+                 foreground=(255, 255, 255), selected_background=(64,64,64),
+                 width=2**31):
         self.pos = pos
         self.text = text
         self.font = font or pygame.font.Font(None, 48)
@@ -44,6 +46,7 @@ class TextField(object):
         self.foreground = foreground
         self.selected_background = selected_background
         self.repeater = KeyRepeater(self)
+        self.width = width
 
     def draw(self, surface):
         x, y = self.pos
@@ -59,11 +62,28 @@ class TextField(object):
             pygame.draw.rect(surface, self.selected_background,
                              (x + a, y, b - a, height))
 
-        surface.blit(self.font.render(self.text, 1, self.foreground), self.pos)
-        if self.focused:
-            initial = self.text[:self.point]
-            width, height = self.font.size(initial)
-            pygame.draw.rect(surface, self.foreground, (x + width, y, 1, height))
+        todisplay = self.text
+        nchars = len(todisplay)
+        cursor = self.point
+
+        while todisplay:
+            while True:
+                width, height = self.font.size(todisplay[:nchars])
+                if width < self.width or nchars == 0: break
+                nchars -= 1
+
+            surface.blit(self.font.render(todisplay[:nchars], 1, self.foreground), (x, y))
+            if self.focused and 0 <= cursor <= nchars:
+                cursor_pos, _ = self.font.size(todisplay[:cursor])
+                pygame.draw.rect(surface, self.foreground, (x + cursor_pos, y, 1, height))
+
+            todisplay = todisplay[nchars:]
+            cursor -= nchars
+            y += height
+            nchars = len(todisplay)
+            pygame.draw.rect(surface, self.background,
+                             (x, y,
+                              surface.get_width()-x, self.font.get_linesize()))
 
     def selection(self):
         return self.mark != self.point
