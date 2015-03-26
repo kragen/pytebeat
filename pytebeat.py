@@ -125,7 +125,6 @@ def make_window():
     
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pygame.mouse.set_visible(False)
-    print sys.argv
     initial_formula = 't * 0' if len(sys.argv) < 2 else sys.argv[1]
     formula = sdltextfield.TextField((10, 266), 
                                      foreground=(0,0,255),
