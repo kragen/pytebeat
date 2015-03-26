@@ -38,8 +38,8 @@ def eval_formula(error, formula):
         _, exc, _ = sys.exc_info()
         error.text=repr(exc)
     else:
-        if current_formula != new_formula:
-            eqlog.write("%s %s" % ( int(time.time()), formula.text+"\n"))
+        if str(current_formula) != str(new_formula):
+            eqlog.write("%s %s" % ( int(time.time() * 10000), formula.text+"\n"))
             eqlog.flush()
         current_formula = new_formula
         error.text=''
