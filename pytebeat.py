@@ -105,16 +105,32 @@ def open_new_outfile():
             return open(filename, 'w')
         i += 1
 
+class pa_fd(object):
+    def __init__(self, pa):
+        self.pa = pa
+    def write(self, data):
+        if len(data):
+            self.pa.write(data)
+    def flush(self):
+        pass
+
 def make_window():
     try:
         outfd = open('/dev/dsp', 'w')
     except IOError, e:
         if e.errno != errno.EACCES:
             raise
-        # Probably we are on a system without Open Sound System, like
-        # most Linuxes of recent vintage.  Try invoking ALSA's aplay
-        # command instead.
-        outfd = os.popen('aplay -f U8', 'w')
+        try:
+            # try PyAudio
+            import pyaudio
+            outfd = pa_fd(pyaudio.PyAudio().open(rate, 1, pyaudio.pa.paInt8, output=True, frames_per_buffer=512))
+        except ImportError:
+            # Probably we are on a system without Open Sound System, like
+            # most Linuxes of recent vintage.  Try invoking ALSA's aplay
+            # command instead, or PulseAudio's pacat
+            #outfd = os.popen('aplay -f U8', 'w')
+            cmd = 'aplay || pacat --format=u8 --rate={rate} --channels=1'.format(rate=rate)
+            outfd = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, bufsize=0).stdin
         
     outfile2 = open_new_outfile()
     outfd = Tee(outfd, outfile2)
